@@ -1,4 +1,5 @@
 ﻿using MedicationAPI.Controller;
+using MedicationAPI.Controller.DTO;
 using MedicationAPI.Models;
 using MedicationAPI.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -22,8 +23,8 @@ public class MedicationControllerTests
     public async Task GetMedications_ReturnsOkResult()
     {
         // Arrange
-        var medications = new List<Medication> { new Medication { Id = 1, Name = "Aspirin", Quantity = 10, CreatedDate = System.DateTime.UtcNow } };
-        _medicationServiceMock.Setup(service => service.GetMedicationsAsync()).ReturnsAsync(medications);
+        var medications = new List<CreateMedicationDto> { new() { Name = "Aspirin", Quantity = 10 } };
+        _medicationServiceMock.Setup(service => service.GetMedicationsAsync()).ReturnsAsync(medications.Select(x => new Medication(x.Name, x.Quantity)));
 
         // Act
         var result = await _controller.GetMedications();
@@ -38,7 +39,7 @@ public class MedicationControllerTests
     public async Task CreateMedication_ReturnsBadRequest_WhenInvalidModel()
     {
         // Arrange
-        var medication = new Medication { Name = "", Quantity = -1 }; // Invalid data
+        var medication = new CreateMedicationDto { Name = "", Quantity = -1 }; // Invalid data
 
         // Act
         var result = await _controller.CreateMedication(medication);
@@ -54,7 +55,7 @@ public class MedicationControllerTests
         _medicationServiceMock.Setup(service => service.DeleteMedicationAsync(1)).ReturnsAsync(true);
 
         // Act
-        var result = await _controller.DeleteMedication(1);
+        var result = await _controller.DeleteMedication(new EntityDto(1));
 
         // Assert
         Assert.IsType<NoContentResult>(result);
